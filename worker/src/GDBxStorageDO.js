@@ -548,6 +548,11 @@ export class GDBxStorageObject {
         const body = await request.text();
         return authJson({ ok: true, received: true, mock: true });
       }
+      if (url.pathname === "/gdmx/gasless" && request.method === "POST") {
+        // EIP-2771 paymaster stub: no relayer key configured → 200 with ok:false so SDK falls back to normal tx (no 404 noise)
+        const body = await request.json().catch(() => ({}));
+        return authJson({ ok: false, error: "paymaster not configured — falling back to normal tx", to: body.to || "", amountUSD: body.amountUSD || 0, chainId: body.chainId || 1 });
+      }
 
       /* Hybrid mesh relay: Nostr kind-23124 event ingest */
       if (url.pathname === "/relay" && request.method === "POST") {
